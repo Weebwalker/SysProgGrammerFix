@@ -10,11 +10,11 @@ int main (){
 
     setlocale(LC_ALL, "Bulgarian");
 
-    FILE *filePointer, *filePointerWrite ;
-    filePointer = fopen("C:\\Docs\\BPE C\\findandfix\\test.txt", "r");
+    FILE *filePointerReader, *filePointerWrite ;
+    filePointerReader = fopen("C:\\Docs\\BPE C\\findandfix\\test.txt", "r");
     filePointerWrite = fopen("C:\\Docs\\BPE C\\findandfix\\output.txt", "w");
 
-    if (filePointer == NULL) {
+    if (filePointerReader == NULL) {
         printf("Error opening file\n");
         return 1;
     }
@@ -31,7 +31,7 @@ int main (){
 
     int sentanceFound = 0;
 
-    while (!foundSentenceEnd && (bytesRead = fread(buf, sizeof(char), bufSize, filePointer)) > 0) {
+    while (!foundSentenceEnd && (bytesRead = fread(buf, sizeof(char), bufSize, filePointerReader)) > 0) {
         buf[bytesRead] = '\0'; // Null-terminate the buffer
 
         // Search for the end of sentence in the buffer
@@ -57,6 +57,6 @@ int main (){
         }
     }
 
-    fclose(filePointer);
+    fclose(filePointerReader);
     return 0;
 }
