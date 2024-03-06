@@ -1,0 +1,3 @@
+C:/Docs/BPE C/findandfix/cmake-build-debug/CMakeFiles/findandfix.dir
+C:/Docs/BPE C/findandfix/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Docs/BPE C/findandfix/cmake-build-debug/CMakeFiles/rebuild_cache.dir
