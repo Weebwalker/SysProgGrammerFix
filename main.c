@@ -1,62 +1,59 @@
-#include "stdio.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <locale.h>
-#include "string.h"
+#include <string.h>
 
-#define INITIAL_BUFFER_SIZE 100
-#define BUFFER_INCREMENT 100
-
-int main (){
+int main() {
 
     setlocale(LC_ALL, "Bulgarian");
 
-    FILE *filePointerReader, *filePointerWrite ;
-    filePointerReader = fopen("C:\\Docs\\BPE C\\findandfix\\test.txt", "r");
-    filePointerWrite = fopen("C:\\Docs\\BPE C\\findandfix\\output.txt", "w");
+    FILE* filePointerReader, * filePointerWrite;
+    filePointerReader = fopen("D:\\SP\\SysProgGrammerFix\\test.txt", "r");
+    filePointerWrite = fopen("D:\\SP\\SysProgGrammerFix\\output.txt", "w");
 
     if (filePointerReader == NULL) {
         printf("Error opening file\n");
         return 1;
     }
 
-    char *buf = (char *)malloc(INITIAL_BUFFER_SIZE + 1);
+    // Determine the size of the file
+    fseek(filePointerReader, 0, SEEK_END);
+    long fileSize = ftell(filePointerReader);
+    rewind(filePointerReader);
+
+    // Read the entire file into memory
+    char* buf = (char*)malloc(fileSize + 1);
     if (buf == NULL) {
         printf("Memory allocation failed\n");
         return 1;
     }
+    fread(buf, sizeof(char), fileSize, filePointerReader);
+    buf[fileSize] = '\0'; // Null-terminate the buffer
 
-    size_t bufSize = INITIAL_BUFFER_SIZE;
-    size_t bytesRead;
-    int foundSentenceEnd = 0;
-
-    int sentanceFound = 0;
-
-    while (!foundSentenceEnd && (bytesRead = fread(buf, sizeof(char), bufSize, filePointerReader)) > 0) {
-        buf[bytesRead] = '\0'; // Null-terminate the buffer
-
+    // Split the buffer into sentences and write them to the output file
+    char *bufStart = buf;
+    while (1) {
         // Search for the end of sentence in the buffer
-        char *sentenceEnd = strstr(buf, ".");
-        if (!sentenceEnd)
-            sentenceEnd = strstr(buf, "!");
-        if (!sentenceEnd)
-            sentenceEnd = strstr(buf, "?");
+        char *sentenceEnd = strpbrk(bufStart, ".!?");
 
         if (sentenceEnd) {
-            // If sentence end found, write up to the end of the sentence to output file
-            *sentenceEnd = '\0'; // Null-terminate at the end of the sentence
-            fprintf(filePointerWrite, "%s", buf);
-            foundSentenceEnd = 1;
-        } else {
-            // If sentence end not found, increase buffer size and read more characters
-            bufSize += BUFFER_INCREMENT;
-            buf = realloc(buf, bufSize + 1);
-            if (buf == NULL) {
-                printf("Memory reallocation failed\n");
-                return 1;
+            // If sentence end found, write up to the end of the sentence to the output file
+            *(sentenceEnd+1) = '\0'; // Null-terminate at the end of the sentence
+            fprintf(filePointerWrite, "%s", bufStart); // Add a space after the sentence
+
+            // Move the start of the buffer to the start of the next sentence
+            bufStart = sentenceEnd + 2;
+            while (*bufStart == ' ' || *bufStart == '\n') {
+                bufStart++;
             }
+        } else {
+            // If sentence end not found, break the loop
+            break;
         }
     }
 
     fclose(filePointerReader);
+    fclose(filePointerWrite);
+    free(buf);
     return 0;
 }
