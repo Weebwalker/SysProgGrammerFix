@@ -30,48 +30,27 @@ int main() {
     fread(buf, sizeof(char), fileSize, filePointerReader);
     buf[fileSize] = '\0'; // Null-terminate the buffer
 
-    // Apply the rules to the buffer
-    for (int i = 0; i < fileSize; i++) {
-        // Rule 1: Remove spaces before "..."
-        if (buf[i] == ' ' && buf[i+1] == '.' && buf[i+2] == '.' && buf[i+3] == '.') {
-            memmove(&buf[i], &buf[i+1], fileSize - i);
-        }
-            // Rule 2: Correct ".." or "...." to "..."
-        else if (buf[i] == '.' && buf[i+1] == '.' && (buf[i+2] != '.' || (buf[i+2] == '.' && buf[i+3] == '.'))) {
-            memmove(&buf[i+2], &buf[i+3], fileSize - i - 1);
-        }
-            // Rule 3: Remove space between punctuation marks
-        else if ((buf[i] == '!' || buf[i] == '?' || buf[i] == '.') && buf[i+1] == ' ' && (buf[i+2] == '!' || buf[i+2] == '?' || buf[i+2] == '.')) {
-            memmove(&buf[i+1], &buf[i+2], fileSize - i - 1);
-        }
-            // Rule 4: Remove space before punctuation mark and add space after punctuation mark
-        else if ((buf[i] == ' ' && (buf[i+1] == '!' || buf[i+1] == '?' || buf[i+1] == '.')) || ((buf[i] == '!' || buf[i] == '?' || buf[i] == '.') && buf[i+1] != ' ')) {
-            memmove(&buf[i], &buf[i+1], fileSize - i);
-            memmove(&buf[i+2], &buf[i+1], fileSize - i - 1);
-            buf[i+1] = ' ';
-        }
-            // Rule 5: Remove comma before or after punctuation mark
-        else if ((buf[i] == ',' && (buf[i+1] == '!' || buf[i+1] == '?' || buf[i+1] == '.')) || ((buf[i] == '!' || buf[i] == '?' || buf[i] == '.') && buf[i+1] == ',')) {
-            memmove(&buf[i], &buf[i+1], fileSize - i);
-        }
-            // Rule 6: Add space after comma
-        else if (buf[i] == ',' && buf[i+1] != ' ') {
-            memmove(&buf[i+2], &buf[i+1], fileSize - i - 1);
-            buf[i+1] = ' ';
-        }
-//            // Rule 7: Remove comma after specific words
-//        else if (strncmp(&buf[i], "Например,", 9) == 0 || strncmp(&buf[i], "Всъщност,", 9) == 0 || /* add other words here */) {
-//            memmove(&buf[i+strlen("Например")], &buf[i+strlen("Например,")], fileSize - i - strlen("Например"));
-//        }
-//            // Rule 8: Add comma after specific words
-//        else if (strncmp(&buf[i], "Казват", 6) == 0 || strncmp(&buf[i], "Напротив", 8) == 0 || /* add other words here */) {
-//            memmove(&buf[i+strlen("Казват")+1], &buf[i+strlen("Казват")], fileSize - i - strlen("Казват"));
-//            buf[i+strlen("Казват")] = ',';
-//        }
-    }
+    // Split the buffer into sentences and write them to the output file
+    char *bufStart = buf;
+    while (1) {
+        // Search for the end of sentence in the buffer
+        char *sentenceEnd = strpbrk(bufStart, ".!?");
 
-    // Write the modified buffer to the output file
-    fprintf(filePointerWrite, "%s", buf);
+        if (sentenceEnd) {
+            // If sentence end found, write up to the end of the sentence to the output file
+            *(sentenceEnd+1) = '\0'; // Null-terminate at the end of the sentence
+            fprintf(filePointerWrite, "%s", bufStart); // Add a space after the sentence
+
+            // Move the start of the buffer to the start of the next sentence
+            bufStart = sentenceEnd + 2;
+            while (*bufStart == ' ' || *bufStart == '\n') {
+                bufStart++;
+            }
+        } else {
+            // If sentence end not found, break the loop
+            break;
+        }
+    }
 
     fclose(filePointerReader);
     fclose(filePointerWrite);
